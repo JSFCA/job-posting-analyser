@@ -1,0 +1,20 @@
+Senior Engineering Manager — Platform Team
+
+We're looking for a Senior Engineering Manager to lead our Platform team (8-10 engineers) building the
+infrastructure that powers our core product. You'll own technical direction, hiring, and delivery for a
+team spanning backend services and internal developer tooling.
+
+Requirements:
+- 5+ years managing engineering teams
+- Strong technical background, ideally backend (Go, Java, or similar)
+- Experience with cloud infrastructure (AWS or GCP)
+- Track record of scaling teams through hypergrowth
+- Excellent stakeholder communication
+
+Nice to have:
+- Experience with Kubernetes
+- Prior startup experience
+- Familiarity with AI/ML infrastructure
+
+We move fast and expect owners, not order-takers. High autonomy, high accountability. Flat org, minimal
+process overhead.
