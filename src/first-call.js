@@ -1,19 +1,17 @@
 import 'dotenv/config';
-import Anthropic from '@anthropic-ai/sdk';
+import { GoogleGenAI } from '@google/genai';
 
-if (!process.env.ANTHROPIC_API_KEY) {
-  console.error('Missing ANTHROPIC_API_KEY. Copy .env.example to .env and add your key.');
+if (!process.env.GEMINI_API_KEY) {
+  console.error('Missing GEMINI_API_KEY. Copy .env.example to .env and add your key.');
   process.exit(1);
 }
 
-const client = new Anthropic();
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 
-const message = await client.messages.create({
-  model: 'claude-sonnet-4-5',
-  max_tokens: 200,
-  messages: [
-    { role: 'user', content: 'In one sentence, what does an Anthropic API "message" object contain?' },
-  ],
+const response = await ai.models.generateContent({
+  model,
+  contents: 'In one sentence, what does a Gemini API "content" object contain?',
 });
 
-console.log(message.content[0].text);
+console.log(response.text);

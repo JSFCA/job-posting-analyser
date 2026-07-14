@@ -5,31 +5,42 @@ Desktop session connected to Trello, which created the cards. Week 1 was a stati
 (sibling folder `../W1 - Portfolio one-pager`). Week 2 goal, per the card: **Claude API key + first call,
 then a job-posting analyzer tested on real postings.** That's the full scope — no more detail on the card.
 
+**Deviation from the card:** built against Google's Gemini API instead of Claude's. User didn't want to pay
+for Anthropic's mandatory billing minimum. Decided the fundamentals being learned (system prompts, roles,
+tool calling, structured output) transfer across providers, so provider choice doesn't matter for the
+learning goal — and Gemini has a genuinely free tier (no card) with full function-calling support. Also,
+MCP (previously a Claude-only reason to prefer Anthropic) got native Gemini SDK support in March 2026, so
+that argument no longer holds either. If a future card says "Claude API" specifically, ask before assuming
+this substitution still applies.
+
 ## Program rules (carried over from W1's RULES card — respect these)
 - Hard cap 15h/week, target 10-12. No sessions after a bad night's sleep.
 - Each work session gets logged on its Trello card: Built / Failed / Learned / Energy 1-5. Nothing more.
 - Avoid scope creep — build only what the card asks for, don't gold-plate.
 
 ## Stack
-Node.js (ESM), official `@anthropic-ai/sdk`, `dotenv` for the API key. Chosen over Python to stay in the
+Node.js (ESM), `@google/genai` (Gemini SDK), `dotenv` for the API key. Chosen over Python to stay in the
 user's existing JS/TS comfort zone while the new thing being learned is the API/LLM integration itself, not
-a new language.
+a new language. Chosen over Claude's SDK to avoid paying — see deviation note above.
 
 ## Structure
 - `src/first-call.js` — minimal script proving the API key + SDK work (single hardcoded prompt)
 - `src/analyze.js` — the actual deliverable: `npm run analyze -- <path-to-posting.txt>`, sends posting text
-  to Claude with a fixed system prompt, prints a structured breakdown (must-haves, nice-to-haves, skills,
-  culture signals, red flags, questions to ask)
+  to Gemini with a fixed system instruction, prints a structured breakdown (must-haves, nice-to-haves,
+  skills, culture signals, red flags, questions to ask)
 - `samples/example-posting.txt` — fake EM posting for quick smoke-testing
-- `.env` (gitignored) — holds `ANTHROPIC_API_KEY`, copy from `.env.example`
+- `.env` (gitignored) — holds `GEMINI_API_KEY` and optional `GEMINI_MODEL` override, copy from `.env.example`
 
 ## Where this leaves off
-Built and installed, not yet run against a real API key (user was getting one set up as of last session) or
-tested against a real job posting (only the fake sample). Next session: confirm `npm run first-call` works,
-then run `npm run analyze` against 2-3 real postings the user is actually looking at, and see if the output
-is actually useful or needs prompt tweaks. After that, log the RULES comment on this card, then move to
-**Week 3 — Agents**: a small tool-using agent from scratch, no framework, then deliberately breaking it to
-learn failure modes.
+Built and installed, not yet run against a real API key (user still needs to get a free key from
+https://aistudio.google.com/apikey) or tested against a real job posting (only the fake sample). Next
+session: confirm `npm run first-call` works, then run `npm run analyze` against 2-3 real postings the user
+is actually looking at, and see if the output is actually useful or needs prompt tweaks. After that, log the
+RULES comment on this card, then move to **Week 3 — Agents**: a small tool-using agent from scratch, no
+framework, then deliberately breaking it to learn failure modes.
 
 ## Known gotcha
-None yet — first real session on this repo.
+Gemini free-tier model ids churn faster than expected — a "latest" alias (`gemini-flash-latest`) was
+deprecated and started 404ing without much warning. Model id is overridable via `GEMINI_MODEL` in `.env`
+specifically so this doesn't require a code change when it happens again. If `npm run first-call` 404s,
+check https://ai.google.dev/gemini-api/docs/models for the current free-tier flash model id first.

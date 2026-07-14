@@ -1,9 +1,9 @@
 import 'dotenv/config';
 import { readFileSync } from 'node:fs';
-import Anthropic from '@anthropic-ai/sdk';
+import { GoogleGenAI } from '@google/genai';
 
-if (!process.env.ANTHROPIC_API_KEY) {
-  console.error('Missing ANTHROPIC_API_KEY. Copy .env.example to .env and add your key.');
+if (!process.env.GEMINI_API_KEY) {
+  console.error('Missing GEMINI_API_KEY. Copy .env.example to .env and add your key.');
   process.exit(1);
 }
 
@@ -15,7 +15,8 @@ if (!filePath) {
 
 const posting = readFileSync(filePath, 'utf-8');
 
-const client = new Anthropic();
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 
 const SYSTEM_PROMPT = `You analyze job postings for a candidate evaluating fit. Given the raw text of a
 job posting, respond with exactly these sections, each as a markdown heading followed by a short bullet list:
@@ -44,11 +45,12 @@ requirement combos, no mention of team size/structure).
 
 Be concise and specific to this posting — no generic filler.`;
 
-const message = await client.messages.create({
-  model: 'claude-sonnet-4-5',
-  max_tokens: 1024,
-  system: SYSTEM_PROMPT,
-  messages: [{ role: 'user', content: posting }],
+const response = await ai.models.generateContent({
+  model,
+  contents: posting,
+  config: {
+    systemInstruction: SYSTEM_PROMPT,
+  },
 });
 
-console.log(message.content[0].text);
+console.log(response.text);

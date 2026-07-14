@@ -3,13 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "W2 of the AI ramp-up: first Claude API call, then a job-posting analyzer.",
+  "description": "W2 of the AI ramp-up: first Gemini API call, then a job-posting analyzer.",
   "scripts": {
     "first-call": "node src/first-call.js",
     "analyze": "node src/analyze.js"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.32.1",
+    "@google/genai": "^0.15.0",
     "dotenv": "^16.4.5"
   }
 }
