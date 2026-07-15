@@ -1,19 +1,49 @@
 import 'dotenv/config';
 import { readFileSync } from 'node:fs';
 import { GoogleGenAI } from '@google/genai';
+import { convert } from 'html-to-text';
 
 if (!process.env.GEMINI_API_KEY) {
   console.error('Missing GEMINI_API_KEY. Copy .env.example to .env and add your key.');
   process.exit(1);
 }
 
-const filePath = process.argv[2];
-if (!filePath) {
-  console.error('Usage: npm run analyze -- <path-to-job-posting.txt>');
+const input = process.argv[2];
+if (!input) {
+  console.error('Usage: npm run analyze -- <path-to-job-posting.txt | url>');
   process.exit(1);
 }
 
-const posting = readFileSync(filePath, 'utf-8');
+const isUrl = /^https?:\/\//i.test(input);
+
+async function fetchPosting(url) {
+  let res;
+  try {
+    res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+  } catch (err) {
+    console.error(`Failed to fetch ${url}: ${err.message}`);
+    process.exit(1);
+  }
+
+  if (!res.ok) {
+    console.error(`Failed to fetch ${url}: ${res.status} ${res.statusText}`);
+    process.exit(1);
+  }
+
+  const html = await res.text();
+  const text = convert(html, { wordwrap: false });
+
+  if (text.trim().length < 200) {
+    console.error(
+      'Warning: page content looks too short — this site may render via JavaScript; ' +
+      'try saving the posting as a .txt file instead.'
+    );
+  }
+
+  return text;
+}
+
+const posting = isUrl ? await fetchPosting(input) : readFileSync(input, 'utf-8');
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const model = process.env.GEMINI_MODEL || 'gemini-3-flash-preview';

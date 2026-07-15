@@ -24,9 +24,11 @@ a new language. Chosen over Claude's SDK to avoid paying — see deviation note 
 
 ## Structure
 - `src/first-call.js` — minimal script proving the API key + SDK work (single hardcoded prompt)
-- `src/analyze.js` — the actual deliverable: `npm run analyze -- <path-to-posting.txt>`, sends posting text
-  to Gemini with a fixed system instruction, prints a structured breakdown (must-haves, nice-to-haves,
-  skills, culture signals, red flags, questions to ask)
+- `src/analyze.js` — the actual deliverable: `npm run analyze -- <path-to-posting.txt | url>`, sends posting
+  text to Gemini with a fixed system instruction, prints a structured breakdown (must-haves, nice-to-haves,
+  skills, culture signals, red flags, questions to ask). URLs are fetched and stripped to text via
+  `html-to-text`; JS-rendered pages (e.g. LinkedIn) print a stderr warning since plain `fetch` can't execute
+  their JavaScript — save those postings as `.txt` instead.
 - `samples/example-posting.txt` — fake EM posting for quick smoke-testing
 - `.env` (gitignored) — holds `GEMINI_API_KEY` and optional `GEMINI_MODEL` override, copy from `.env.example`
 
