@@ -16,7 +16,7 @@ if (!filePath) {
 const posting = readFileSync(filePath, 'utf-8');
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+const model = process.env.GEMINI_MODEL || 'gemini-3-flash-preview';
 
 const SYSTEM_PROMPT = `You analyze job postings for a candidate evaluating fit. Given the raw text of a
 job posting, respond with exactly these sections, each as a markdown heading followed by a short bullet list:

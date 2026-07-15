@@ -14,7 +14,6 @@ that argument no longer holds either. If a future card says "Claude API" specifi
 this substitution still applies.
 
 ## Program rules (carried over from W1's RULES card — respect these)
-- Hard cap 15h/week, target 10-12. No sessions after a bad night's sleep.
 - Each work session gets logged on its Trello card: Built / Failed / Learned / Energy 1-5. Nothing more.
 - Avoid scope creep — build only what the card asks for, don't gold-plate.
 
@@ -32,15 +31,27 @@ a new language. Chosen over Claude's SDK to avoid paying — see deviation note 
 - `.env` (gitignored) — holds `GEMINI_API_KEY` and optional `GEMINI_MODEL` override, copy from `.env.example`
 
 ## Where this leaves off
-Built and installed, not yet run against a real API key (user still needs to get a free key from
-https://aistudio.google.com/apikey) or tested against a real job posting (only the fake sample). Next
-session: confirm `npm run first-call` works, then run `npm run analyze` against 2-3 real postings the user
-is actually looking at, and see if the output is actually useful or needs prompt tweaks. After that, log the
-RULES comment on this card, then move to **Week 3 — Agents**: a small tool-using agent from scratch, no
-framework, then deliberately breaking it to learn failure modes.
+Model-id debugging is resolved: this Google Cloud project (new, created 2026-07-14) has **zero free-tier
+quota for the 2.0/2.5-generation Gemini models** — `gemini-2.5-flash` and `gemini-2.5-flash-lite` 404
+("no longer available to new users"), `gemini-2.0-flash-001` came back 429 RESOURCE_EXHAUSTED with a hard 0
+quota. `gemini-3-flash-preview` returned a real 200 on the first try and is now the default everywhere
+(`.env`, `.env.example`, `src/first-call.js`, `src/analyze.js` — all overridable via `GEMINI_MODEL`).
+
+`npm run first-call` and `npm run analyze -- samples/example-posting.txt` both confirmed working end-to-end
+through the SDK. The analyzer's output on the fake EM posting was specific and useful (real red flags, real
+questions, not generic filler) — no prompt tweaks needed yet.
+
+**Next session:** run `npm run analyze` against 2-3 *real* job postings the user is actually looking at (the
+sample was only ever a smoke test), and judge whether the output holds up on real messy text or needs prompt
+adjustments. After that, log the RULES comment on this Trello card, then move to **Week 3 — Agents**: a
+small tool-using agent from scratch, no framework, then deliberately breaking it to learn failure modes.
 
 ## Known gotcha
-Gemini free-tier model ids churn faster than expected — a "latest" alias (`gemini-flash-latest`) was
-deprecated and started 404ing without much warning. Model id is overridable via `GEMINI_MODEL` in `.env`
-specifically so this doesn't require a code change when it happens again. If `npm run first-call` 404s,
-check https://ai.google.dev/gemini-api/docs/models for the current free-tier flash model id first.
+Gemini free-tier model ids churn faster than expected, and quota allocation can differ by *project age*, not
+just model id — a "latest" alias (`gemini-flash-latest`) has been reported deprecated elsewhere, the
+2.0/2.5-generation models 404 or 429-with-zero-quota on brand-new free-tier projects, and only newer
+generations (`gemini-3-flash-preview` confirmed working; `gemini-3.1-flash-lite`, `gemini-3.5-flash` untested
+but likely fine) get live free quota. Model id is overridable via `GEMINI_MODEL` in `.env` specifically so
+this doesn't require a code change when it happens again. If `npm run first-call` fails, test candidate model
+ids one at a time with a single direct curl call before touching code — don't loop through several in one
+shell command, and don't just retry the same ids that already failed.
