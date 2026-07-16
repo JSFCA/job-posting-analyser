@@ -58,7 +58,67 @@ independent) — no Critical/Important findings, only two Minor ones (missing `e
   not a bug — the file-path route is the reliable fallback and is called out in `## Structure` above.
 
 **Next up: Week 3 — Agents.** A small tool-using agent from scratch, no framework, then deliberately breaking
-it to learn failure modes.
+it to learn failure modes. See `## Looking ahead` below for the options discussed and where that's headed.
+
+## Looking ahead (planning talk, not yet built — read before starting W3)
+
+**Parked idea: daily job-opening scraper + email alert (scope TBD, likely W4+, not W3).**
+User's idea: something that checks specific job sources daily and emails postings matching criteria. Sized
+this out before committing to anything:
+- The matching/email parts are the easy, well-trodden part (reuse W2's analyze logic for matching; any
+  SMTP/email API for delivery).
+- The hard part is **sourcing** — "online job openings" generally means scraping, and W2's URL-input work
+  already proved real ATS sites (Hays, Expleo/iCIMS) resist plain `fetch` because they render postings via
+  client-side JS. LinkedIn/Indeed are worse (ToS-restricted, bot-detected). Realistic scope narrows to a
+  short list of specific company career pages/ATS platforms with predictable structure, not "online" broadly.
+- The other new piece is **hosting**: "daily" needs something running unattended (a laptop cron only fires
+  if the laptop is awake at that time; otherwise this needs a small always-on host or scheduled cloud
+  function) — infrastructure this project hasn't touched yet.
+- Considered whether a headless browser (Playwright/Puppeteer) fixes the scraping problem: yes, likely, for
+  plain client-side-rendering cases like Hays/iCIMS specifically (it executes the JS `fetch` can't) — but
+  it's a real dependency/complexity jump (bundles a browser binary, seconds not milliseconds per page,
+  doesn't help against sites with active bot-detection like LinkedIn). Verdict: not worth retrofitting into
+  W2's small CLI script, but plausibly the right foundation *if and when* the scraper project gets built,
+  since that project needs serious sourcing infra regardless.
+- **Before writing any scraper code**, validate the approach with zero code: Claude Code's `/chrome` command
+  drives the actual Claude in Chrome browser extension (separate install from the Chrome Web Store, needs an
+  Anthropic direct plan) — it can navigate to a real ATS URL, wait for JS to render, and read the actual
+  page content. Runs a visible browser window (not headless, not for a silent daily cron), but it's the
+  fastest way to confirm "would a real browser even see this posting" before investing in headless-browser
+  infrastructure. Try this on Hays/Expleo before scoping the scraper project for real.
+- **Status:** parked, not scoped as a card yet. Revisit after W3.
+
+**W3 shape: what makes a task actually "agentic."** User knows little about agents going in, so this needs
+some teaching, not just a task assignment. Key distinction established: W2's `analyze.js` is a single-shot
+call (fixed number of steps, no decisions made by the model about what happens next). An **agent** adds a
+loop — model gets a goal + a list of callable tools, reasons about what to do, calls a tool, your code
+executes it and feeds the result back as an observation, model decides again, repeats until done (the
+ReAct pattern). "No framework" (per the original card wording) means hand-writing that loop — the `while`,
+the tool dispatch, the message-history bookkeeping — instead of LangChain/similar, because the loop mechanics
+are the actual lesson.
+
+**W3 candidate tasks discussed (none chosen yet)**, roughly clean-mechanics → connected-but-messy:
+1. **Postings triage agent (current lean).** Turn W2's own code into tools: `list_postings()`,
+   `read_posting(filename)`, `analyze_posting(text)` (literally the W2 system prompt, now callable),
+   `check_against_criteria(analysis, criteria)`. Goal: "go through these local posting files and tell me
+   which are worth applying to." Model decides how many to check and when it has enough to conclude. Reuses
+   W2 code as agent tools (concretizes "tool calling" as literally your existing function, now with a
+   description attached) and stays on local files — sidesteps the scraping mess entirely.
+2. **To-do list agent.** Tools: `add_task`, `list_tasks`, `complete_task`, `find_task(query)` over a local
+   JSON file. Goal like "add three tasks, don't duplicate what's already there" — forces the model to
+   sequence tool calls correctly (list before add). Cleanest textbook shape, zero domain baggage, good for
+   "break it later" experiments (remove the duplicate-check instruction, see if it self-corrects).
+3. **Research-and-compute agent.** Search tool + calculator tool, question like "combined population of
+   Portugal and Ireland, and what year did each join the EU." Standard tutorial shape — two unrelated tools,
+   cleanest illustration of "decide which tool, in what order." Least connected to user's actual interests.
+4. **Real scraper prototype, one site.** `fetch_page` + `extract_postings` tools against one real company
+   career page. Most exciting, doubles as an early prototype of the parked scraper idea — but reintroduces
+   this week's JS-rendering/scraping fight, which would compete with "learn what an agent loop is" for
+   attention in the same week. Probably too much at once for a first agent.
+
+Leaning toward **option 1** for continuity and motivation, with **option 2** as the fallback if zero domain
+baggage turns out to matter more while learning the loop mechanics for the first time. Not decided — pick up
+this conversation at the start of the W3 session rather than assuming option 1 is locked in.
 
 ## Session log (Built / Failed / Learned / Energy — per RULES card)
 - **Built:** Fixed the free-tier model-id issue (`gemini-3-flash-preview` now default everywhere); added
